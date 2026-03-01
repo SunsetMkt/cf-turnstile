@@ -68,10 +68,7 @@ function turnstile(secret?: string, globalOptions?: TurnstileOptions): (token: s
             console.log('cf-turnstile: using form data:', formData);
         }
 
-        const received = await sendRequest(options?.apiUrl ?? DEFAULT_API_URL, {
-            method: 'POST',
-            body: formData,
-        }).then(x => x.json()) as {
+        const received = await sendRequest(options?.apiUrl ?? DEFAULT_API_URL, formData) as {
             success?: boolean;
             challenge_ts?: string;
             hostname?: string;
@@ -144,13 +141,9 @@ function validateReceivedParam(expected?: string | string[], received?: string) 
     );
 }
 
-function sendRequest(url: string, options: RequestInit): Promise<any> {
-    try {
-        return fetch(url, options);
-    } catch {
-        const fetch = require('node-fetch');
-        return fetch(url, options);
-    }
+async function sendRequest(url: string, body: URLSearchParams): Promise<any> {
+    const { default: ky } = await import('ky');
+    return ky.post(url, { body }).json();
 };
 
 module.exports = turnstile;
